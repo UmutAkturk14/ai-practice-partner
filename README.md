@@ -86,3 +86,9 @@
 - `data/*.md`: mood profile schema and sample set placeholders.
 - `export/export_outline.md`: planned MIDI/WAV export staging.
 - `api/routes.md`: planned HTTP endpoints and contracts.
+
+## Development setup
+- Requires Python 3.10+. Create a virtualenv and install dev tools:
+  - `pip install -e .[dev]` (or `pip install -r requirements.txt` for runtime libs only).
+- Run tests with `pytest`.
+- Code style: `black` + `isort`; type checks with `mypy` (per `pyproject.toml`).
