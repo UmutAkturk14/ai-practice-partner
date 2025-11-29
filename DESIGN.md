@@ -1,46 +1,39 @@
 # System Architecture (Abstract)
-- Goal: agentic pipeline that converts user intent (BPM, chord sequence, mood) into layered backing tracks (chords, drums, bass) with export hooks.
-- Constraints: no runtime logic; only structural placeholders and pseudocode.
 
-## Modules
-- `agent/`: orchestrates flow from input parsing to asset assembly. Maintains context (BPM, mood profile, structural decisions).
-- `music/`: algorithmic generation stubs (Markov chords, rhythm grids, bass heuristics).
-- `data/`: placeholder datasets and mood profile definitions (symbolic descriptions only).
-- `export/`: outlines for MIDI/WAV renderers; no synthesis code.
-- `utils/`: shared helpers (validation, tokenization, time-grid utilities) in pseudocode.
-- `api/`: future backend endpoints; request/response contracts only.
+## Overview
+- Agentic pipeline that converts user intent (BPM, chord sequence, mood) into symbolic backing tracks (chords, drums, bass) with export hooks.
+- No runtime logic yet; this document is conceptual guidance for upcoming implementation.
+- All output is symbolic (grids/events/MIDI-ish descriptors), not audio rendering.
 
-## Data Flow (planned)
-1. Receive user input (BPM, chord sequence, mood tag).
-2. Normalize/validate → create `SessionPlan` object (conceptual).
-3. Agent evaluates mood profile → selects chord transition model (Markov chain) and rhythm grid config.
-4. Generate chord progression sketch (states = chord symbols; transitions weighted by mood).
-5. Generate drum pattern on time grid (e.g., 16 steps per bar; accent rules vary by mood).
-6. Generate bassline tied to chord roots and groove hints.
-7. Merge layers into track structure (intro, loop, outro) with dynamic variation hooks.
-8. Export adapter prepares symbolic data for MIDI/WAV rendering (not implemented).
+## Data model
+- Mood profiles: tempo ranges, rhythmic density, swing/feel, harmonic bias (transition tendencies), drum archetypes, and bass movement hints. Planned storage in `data/` (JSON/YAML) with validation utilities.
+- Grid/events: rhythm grid carries BPM, resolution, bars, time signature, swing/feel. Events include chord symbols with position/duration tags, drum hits per grid step/track, and bass notes with pitch/duration/velocity placeholders. See `docs/data_schemas.md` for shapes.
 
-## Markov Chain Notes
-- State: chord symbol + position-in-phrase context tag.
-- Transition weights: derived from mood profile tendencies (e.g., ii→V heavy in jazz).
-- Generation loop: seed from user chord input when provided; otherwise sample from mood defaults with reproducible RNG.
+## Pipeline stages
+- Input parsing & validation: ingest BPM, chord sequence, mood tag; normalize, clamp, canonicalize, and collect warnings/errors. Implementation will live in `agent/input_parser.*`.
+- Decision engine: build a session plan with structure blocks (intro/loop/outro or 12-bar), harmony length, variation rate, and deterministic seed selection based on mood profile. Implementation will live in `agent/decision_engine.*`.
+- Per-layer generators:
+  - Chords: Markov-ish progression using mood tendencies and optional user anchors. See `music/chords.*`.
+  - Drums: rhythm-grid patterns with swing/shuffle flags, accent rules, and optional fills. See `music/drums.*`.
+  - Bass: patterns aligned to chord roots and groove heuristics (passing/approach tones). See `music/bass.*`.
+- Export: map layers + grid to symbolic artifacts (MIDI channel/tick plans or JSON event lists) for future rendering. Implementation notes in `export/export_outline.*`.
 
-## Rhythm Grid
-- Temporal resolution: configurable (e.g., 1/16 per beat) stored in grid metadata.
-- Drum slots: kick/snare/hh/perc arrays parallel to grid; values are hit-intensity placeholders.
-- Swing/feel: mood profile may shift off-beat timing; only described, not applied.
+## Style presets / moods
+- Lofi: swing/loose feel, sparse drums, minor-leaning harmony, loop-friendly structure.
+- Blues: 12-bar bias, shuffle feel, dominant harmony, walking/sparse bass options.
+- Jazz: ii–V–I emphasis, extended harmonies, ride/ghost-note flavor, chromatic bass approaches.
+- Mood profile files encode these biases and drive the decision engine.
 
-## Mood Profiles
-- Define chord tendencies, rhythmic density, instrumentation hints.
-- Lofi: sparse drums, extended chords, mellow bass movement.
-- Blues: shuffle grid, dominant transitions, walking bass bias.
-- Jazz: extended ii-V-I loops, ride cymbal emphasis, chromatic bass passing tones.
+## Determinism and randomness
+- Deterministic seeds govern Markov sampling and pattern choices for reproducible tracks; seed utilities will live in `utils/`.
+- Stochastic elements include chord transitions (weighted), drum accent/fill placement, and bass passing tones; all must honor the seed for repeatability.
 
-## Export Outline
-- MIDI: map symbolic events to tracks/channels; preserve velocity placeholders.
-- WAV: plan for future synth/sample rendering pipeline (requires audio engine).
+## Future extensions
+- Audio rendering/mixing pipeline (MIDI to synth/sampler or WAV bounce).
+- Melody/topline generation and embellishments.
+- Persistence, richer API/CLI tooling, and user-tunable dynamics.
 
-## TODO (implementation later)
-- Concrete data structures and serializers.
-- Deterministic seeding and reproducibility tools.
-- CLI/API wiring and persistence.
+## Notes for implementation
+- Concrete data structures and serializers will be added alongside code.
+- Deterministic seeding and reproducibility tools belong in `utils/`.
+- CLI/API wiring will wrap the agent pipeline once core generation is in place.
