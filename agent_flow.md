@@ -1,39 +1,31 @@
-# Agent Flow (Step-by-Step, Abstract)
-1) Accept user input
-   - BPM number
-   - Chord sequence string (optional; comma-separated symbols)
-   - Mood tag (`lofi`, `blues`, `jazz`)
+# Agent Flow (Human-Readable)
+- End-to-end steps for generating symbolic backing tracks (chords, drums, bass) for lofi, blues, and jazz. Terminology matches README/DESIGN (session plan, structure blocks, rhythm grid).
 
-2) Validate + normalize
-   - Pseudocode: parse BPM → ensure numeric; tokenize chords → canonicalize; verify mood in known set.
-   - TODO: add error collection strategy.
+## Step 1: Parse and normalize input
+- Decisions: coerce BPM, tokenize/canonicalize chord string (optional), normalize mood tag (`lofi`, `blues`, `jazz`), collect warnings/errors.
+- Specs: see `agent/input_parser.md` and `utils/helpers.md` for validation plans.
 
-3) Build session context
-   - Create conceptual `SessionPlan` with tempo, chord seed, selected mood profile, and random seed placeholder.
+## Step 2: Build session/structure plan
+- Decisions: choose structure template (intro/loop/outro vs 12-bar), set bar count/section lengths, pick variation rate, assign deterministic seed, select rhythm grid resolution/feel from mood profile.
+- Specs: see `agent/decision_engine.md`, mood profile schema in `data/mood_profiles.md`, grid shapes in `docs/data_schemas.md`.
 
-4) Analyze samples (symbolic)
-   - Stub: reference `data/` mood profiles; no real audio.
-   - Derive chord transition weights and rhythm density factors from profile.
+## Step 3: Generate chords
+- Decisions: seed starting state (from user anchors or mood defaults), apply Markov tendencies per mood, enforce cadence/anchor rules, target harmony length from session plan.
+- Specs: see `music/chords.md` and mood tendencies in `data/mood_profiles.md`.
 
-5) Generate chord progression (Markov)
-   - If user provided chords: use as anchors; fill gaps via Markov transitions.
-   - Else: sample start state from mood defaults; iterate transitions to target length.
+## Step 4: Generate drums
+- Decisions: build rhythm grid using plan BPM/resolution/feel; apply accent rules, kick/snare/hat archetypes, optional fills at section boundaries.
+- Specs: see `music/drums.md` and rhythm/grid notes in `docs/data_schemas.md`.
 
-6) Assemble drum pattern
-   - Choose rhythm grid resolution from mood (e.g., 16 steps).
-   - Apply mood accent rules to kick/snare/hh slots.
+## Step 5: Generate bass
+- Decisions: follow chord roots, choose movement pattern (sparse/walking/chromatic) from mood profile, insert passing/approach tones respecting groove, align to grid/sections.
+- Specs: see `music/bass.md` and mood bass behavior in `data/mood_profiles.md`.
 
-7) Assemble bassline
-   - Follow chord roots; insert passing notes depending on mood complexity level.
-   - Sync to rhythm grid; respect groove offsets if specified.
+## Step 6: Export symbolic result
+- Decisions: merge layers on the shared grid; map to symbolic export artifacts (MIDI-ish channels/ticks or JSON event lists); attach metadata (mood_id, bpm, seed, sections).
+- Specs: see `export/export_outline.md` and data shapes in `docs/data_schemas.md`.
 
-8) Merge layers
-   - Align chord, drum, bass sequences on shared grid; adjust bar counts.
-   - TODO: add intro/outro shaping plan.
-
-9) Prepare export payload
-   - Build symbolic event lists for MIDI/WAV adapters.
-   - No rendering code; only describe channel assignments and tempo metadata.
-
-10) Return track package
-   - Return structured placeholder with layer data and export-ready descriptors.
+## Control options
+- Seeds: one deterministic seed per session drives Markov sampling and pattern choices for reproducibility (managed via `utils/helpers.md`).
+- Mood/style influence: mood profiles choose structure templates, grid feel (swing/shuffle), chord tendencies, drum archetypes, and bass movement heuristics.
+- User-provided chords: treated as anchors; gaps are auto-filled by the chord generator, but anchors are preserved unless validation fails.
