@@ -1,20 +1,33 @@
 """Decision engine building session plans per agent/decision_engine.md."""
 
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import Dict, List
+
+from ai_practice_partner.types import Bar, ChordSymbol
 
 
-@dataclass
+@dataclass(frozen=True)
+class RhythmGrid:
+    """Rhythm grid configuration for the session."""
+
+    bpm: int
+    resolution: int
+    bars: Bar
+    swing: float
+    time_signature: Dict[str, int]
+
+
+@dataclass(frozen=True)
 class StructureBlock:
     """Represents a section of the track (intro, loop, outro, etc.)."""
 
     name: str
-    bars: int
+    bars: Bar
     style: str
     intensity: float
 
 
-@dataclass
+@dataclass(frozen=True)
 class SessionPlan:
     """Session plan driving generation."""
 
@@ -22,10 +35,10 @@ class SessionPlan:
     mood_id: str
     seed: str
     structure: List[StructureBlock]
-    grid: dict
+    grid: RhythmGrid
     variation_rate: float
-    density: dict = field(default_factory=dict)
-    chord_anchors: List[str] = field(default_factory=list)
+    density: Dict[str, float] = field(default_factory=dict)
+    chord_anchors: List[ChordSymbol] = field(default_factory=list)
 
 
 # TODO: implement template selection, block sizing, grid config, and seed handling.

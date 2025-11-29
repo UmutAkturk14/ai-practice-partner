@@ -3,25 +3,28 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
 
+from ai_practice_partner.types import ChordSymbol
+from ai_practice_partner.utils.helpers import Diagnostic
 
-@dataclass
+
+@dataclass(frozen=True)
 class NormalizedInput:
     """Structured input after validation and normalization."""
 
     mood_id: str
     tempo: int
     bars: int
-    chords: List[str] = field(default_factory=list)
+    chords: List[ChordSymbol] = field(default_factory=list)
     seed: Optional[str] = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class ParseResult:
     """Aggregate result with diagnostics."""
 
     normalized_input: Optional[NormalizedInput]
-    warnings: List[dict] = field(default_factory=list)
-    errors: List[dict] = field(default_factory=list)
+    warnings: List[Diagnostic] = field(default_factory=list)
+    errors: List[Diagnostic] = field(default_factory=list)
 
 
 # TODO: implement parsing, clamping, chord canonicalization, and diagnostics aggregation.

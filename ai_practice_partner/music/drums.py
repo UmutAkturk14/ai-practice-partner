@@ -3,13 +3,15 @@
 from dataclasses import dataclass, field
 from typing import Dict, List
 
+from ai_practice_partner.types import Bar, RhythmStep
 
-@dataclass
+
+@dataclass(frozen=True)
 class DrumLayer:
     """Drum tracks aligned to the shared rhythm grid."""
 
-    resolution: int
-    bars: int
+    resolution: RhythmStep
+    bars: Bar
     tracks: Dict[str, List[float]] = field(default_factory=dict)
     swing: float = 0.0
 
